@@ -13,10 +13,6 @@ app.get('/', function (req, res) {
 io.on('connection', function (socket) {
   console.log('SERVERSIDE SOCKET CONNECTED: ', socket.id);
 
-  socket.on('update', () => {
-    io.emit('update')
-  });
-
   socket.on('blinked', () => {
     console.log('YOU BLINKED! I SAW!')
   })
@@ -24,8 +20,4 @@ io.on('connection', function (socket) {
   socket.on('smiled', () => {
     console.log('YOU SMILED! I SAW! :)')
   })
-
-  socket.on('sendMessage', () => {
-    console.log('I GOT THE MESSAGE');
-  });
 });

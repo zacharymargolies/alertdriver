@@ -3,16 +3,16 @@ import { Platform } from 'react-native';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 
 import TabBarIcon from '../components/TabBarIcon';
-import HomeScreen from '../screens/HomeScreen';
-import CameraScreen from '../screens/CameraScreen';
-import SettingsScreen from '../screens/SettingsScreen';
+import GameScreen from '../screens/GameScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import LoginScreen from '../screens/LoginScreen';
 
-const HomeStack = createStackNavigator({
-  Home: HomeScreen,
+const LoginStack = createStackNavigator({
+  Login: LoginScreen,
 });
 
-HomeStack.navigationOptions = {
-  tabBarLabel: 'Home',
+LoginStack.navigationOptions = {
+  tabBarLabel: 'Login',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
@@ -25,36 +25,36 @@ HomeStack.navigationOptions = {
   ),
 };
 
-const LinksStack = createStackNavigator({
-  Links: CameraScreen,
+const GameStack = createStackNavigator({
+  Game: GameScreen,
 });
 
-LinksStack.navigationOptions = {
-  tabBarLabel: 'Links',
+GameStack.navigationOptions = {
+  tabBarLabel: 'Game',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
-      name={Platform.OS === 'ios' ? `ios-link${focused ? '' : '-outline'}` : 'md-link'}
+      name={Platform.OS === 'ios' ? `ios-game-controller-b${focused ? '' : '-outline'}` : 'md-link'}
     />
   ),
 };
 
-const SettingsStack = createStackNavigator({
-  Settings: SettingsScreen,
+const ProfileStack = createStackNavigator({
+  Profile: ProfileScreen,
 });
 
-SettingsStack.navigationOptions = {
-  tabBarLabel: 'Settings',
+ProfileStack.navigationOptions = {
+  tabBarLabel: 'Profile',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
-      name={Platform.OS === 'ios' ? `ios-options${focused ? '' : '-outline'}` : 'md-options'}
+      name={Platform.OS === 'ios' ? `ios-person${focused ? '' : '-outline'}` : 'md-options'}
     />
   ),
 };
 
 export default createBottomTabNavigator({
-  HomeStack,
-  LinksStack,
-  SettingsStack,
+  LoginStack,
+  GameStack,
+  ProfileStack
 });

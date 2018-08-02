@@ -11,7 +11,7 @@ window.navigator.userAgent = 'react-native';
 import io from 'socket.io-client';
 
 
-class CameraScreen extends React.Component {
+export default class GameScreen extends React.Component {
   constructor() {
     super();
 
@@ -28,12 +28,10 @@ class CameraScreen extends React.Component {
   }
 
   blinked = () => {
-    console.log('BLINKED');
     this.socket.emit('blinked');
   }
 
   smiled = () => {
-    console.log('SMILED');
     this.socket.emit('smiled');
   }
 
@@ -260,5 +258,3 @@ const styles = StyleSheet.create({
     bottom: '10%',
   },
 });
-
-export default CameraScreen;
