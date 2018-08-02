@@ -1,4 +1,4 @@
-import { AR } from 'expo';
+import Expo, { AR } from 'expo';
 import ExpoTHREE, { THREE } from 'expo-three';
 import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
@@ -6,20 +6,37 @@ import { Text, View, StyleSheet } from 'react-native';
 import GraphicsView from '../components/GraphicsView';
 import * as ThreeAR from '../ThreeAR';
 
-let messages = [
-  'Close your eyes to start...',
-  'Why you scowling?',
-  'Oh nevermind...',
-  "Whoa, seriously what's up?!",
-  'lol bored yet 😂',
-  "Whatever, guess I'll join you }:|",
-];
-class LinksScreen extends React.Component {
+window.navigator.userAgent = 'react-native';
+import io from 'socket.io-client';
+
+
+class CameraScreen extends React.Component {
+  constructor() {
+    super();
+
+    const connectionConfig = {
+      jsonp: false,
+      reconnection: true,
+      reconnectionDelay: 100,
+      reconnectionAttempts: 100000,
+      transports: ['websocket']
+    };
+
+    this.socket = io('http://172.16.21.255:3000', connectionConfig);
+
+  }
+
+  blinked = () => {
+    console.log('SEND MESSAGE CLICKED');
+    this.socket.emit('blinked');
+  }
+
   state = {
-    scowlCount: 0,
+    numBlinks: 0,
+    justBlinked: false
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     const hasFace = anchors => {
       for (let anchor of anchors) {
         if (anchor.type === AR.AnchorTypes.Face) {
@@ -51,6 +68,18 @@ class LinksScreen extends React.Component {
         }
       }
     });
+
+  }
+
+  playSound = async () => {
+    const soundObject = new Expo.Audio.Sound();
+    Expo.Audio.setIsEnabledAsync(true);
+    try {
+      await soundObject.loadAsync(require('../assets/beep.mp3'));
+      await soundObject.playAsync();
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   handleFace = (anchor, eventType) => {
@@ -61,16 +90,23 @@ class LinksScreen extends React.Component {
       [AR.BlendShapes.EyeBlinkL]: rightEyebrow,
     } = blendShapes;
 
-    let { scowlCount, isScowling: wasScowling } = this.state;
-    const isScowling = leftEyebrow > 0.6 && rightEyebrow > 0.6;
-    if (isScowling !== wasScowling) {
-      scowlCount = (scowlCount + 1) % messages.length;
-      if (scowlCount % 2 === 1 && !isScowling) {
-        scowlCount -= 1;
-      }
+    const isBlinking = leftEyebrow > 0.2 || rightEyebrow > 0.2;
+
+    if (isBlinking && !this.state.justBlinked) {
+      this.playSound();
+      this.blinked();
+      this.setState((state) => {
+        return {
+          numBlinks: state.numBlinks + 1,
+          justBlinked: true
+        };
+      });
+    } else if (!isBlinking) {
+      this.setState({justBlinked: false})
     }
 
-    this.setState({ ...blendShapes, scowlCount, isScowling });
+    this.setState({ ...blendShapes, isBlinking });
+
   };
 
   componentWillUnmount() {
@@ -83,10 +119,9 @@ class LinksScreen extends React.Component {
     const {
       [AR.BlendShapes.EyeBlinkR]: leftEyebrow,
       [AR.BlendShapes.EyeBlinkL]: rightEyebrow,
-      scowlCount,
     } = this.state;
 
-    const message = messages[scowlCount % messages.length];
+    const message = `You are blinking! You've blinked ${this.state.numBlinks} times.`;
 
     return (
       <View style={{ flex: 1 }}>
@@ -102,7 +137,7 @@ class LinksScreen extends React.Component {
           <InfoBox title="Left Eye">{leftEyebrow}</InfoBox>
           <InfoBox title="Right Eye">{rightEyebrow}</InfoBox>
         </View>
-        {message && <Text style={styles.coolMessage}>{message}</Text>}
+        {this.state.isBlinking && <Text style={styles.coolMessage}>{message}</Text>}
       </View>
     );
   }
@@ -135,9 +170,8 @@ class LinksScreen extends React.Component {
   };
 }
 
-class InfoBox extends React.PureComponent {
-  render() {
-    const { title, children } = this.props;
+const InfoBox = (props) =>  {
+    const { title, children } = props;
     let value = (children || 0).toFixed(2);
     return (
       <View style={styles.infoBoxContainer}>
@@ -145,8 +179,8 @@ class InfoBox extends React.PureComponent {
         <Text style={styles.infoSubtitle}>{value}</Text>
       </View>
     );
-  }
-}
+};
+
 
 const styles = StyleSheet.create({
   infoContainer: {
@@ -164,12 +198,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   infoTitle: {
+    color: 'red',
     fontWeight: 'bold',
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 16,
   },
   infoSubtitle: {
+    color: 'red',
     textAlign: 'center',
     fontSize: 16,
     opacity: 0.8,
@@ -188,4 +224,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LinksScreen;
+export default CameraScreen;
