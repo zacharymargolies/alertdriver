@@ -1,7 +1,8 @@
+/* eslint-disable complexity*/
 import Expo, { AR } from 'expo';
 import ExpoTHREE, { THREE } from 'expo-three';
 import React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, Button } from 'react-native';
 
 import GraphicsView from '../components/GraphicsView';
 import * as ThreeAR from '../ThreeAR';
@@ -27,13 +28,20 @@ class CameraScreen extends React.Component {
   }
 
   blinked = () => {
-    console.log('SEND MESSAGE CLICKED');
+    console.log('BLINKED');
     this.socket.emit('blinked');
+  }
+
+  smiled = () => {
+    console.log('SMILED');
+    this.socket.emit('smiled');
   }
 
   state = {
     numBlinks: 0,
-    justBlinked: false
+    justBlinked: false,
+    justSmiled: false,
+    gamePlay: false
   };
 
   async componentDidMount() {
@@ -57,7 +65,7 @@ class CameraScreen extends React.Component {
           anchors: {
             [AR.AnchorTypes.Face]: {
               // geometry: true,
-              blendShapes: [AR.BlendShapes.EyeBlinkR, AR.BlendShapes.EyeBlinkL],
+              blendShapes: [AR.BlendShapes.EyeBlinkR, AR.BlendShapes.EyeBlinkL, AR.BlendShapes.MouthSmileL, AR.BlendShapes.MouthSmileR],
             },
           },
         });
@@ -71,11 +79,16 @@ class CameraScreen extends React.Component {
 
   }
 
+  toggleGame = () => {
+    console.log('GAME STATE CHANGED')
+    this.setState({gamePlay: !this.state.gamePlay});
+  }
+
   playSound = async () => {
     const soundObject = new Expo.Audio.Sound();
     Expo.Audio.setIsEnabledAsync(true);
     try {
-      await soundObject.loadAsync(require('../assets/beep.mp3'));
+      await soundObject.loadAsync(require('../assets/sounds/beep.mp3'));
       await soundObject.playAsync();
     } catch (err) {
       console.log(err);
@@ -88,24 +101,37 @@ class CameraScreen extends React.Component {
     const {
       [AR.BlendShapes.EyeBlinkR]: leftEyebrow,
       [AR.BlendShapes.EyeBlinkL]: rightEyebrow,
+      [AR.BlendShapes.MouthSmileL]: rightSmile,
+      [AR.BlendShapes.MouthSmileR]: leftSmile,
     } = blendShapes;
 
-    const isBlinking = leftEyebrow > 0.2 || rightEyebrow > 0.2;
+    const isBlinking = leftEyebrow > 0.25 || rightEyebrow > 0.25;
+    const isSmiling = (rightSmile + leftSmile) > 0.5;
 
-    if (isBlinking && !this.state.justBlinked) {
-      this.playSound();
-      this.blinked();
-      this.setState((state) => {
-        return {
-          numBlinks: state.numBlinks + 1,
-          justBlinked: true
-        };
-      });
-    } else if (!isBlinking) {
-      this.setState({justBlinked: false})
+    if (this.state.gamePlay) {
+      if ((isBlinking && !this.state.justBlinked) || (isSmiling  && !this.state.justSmiled)) {
+        this.playSound();
+        if (isBlinking) {
+          this.blinked();
+          this.setState((state) => {
+            return {
+              numBlinks: state.numBlinks + 1,
+              justBlinked: true
+            };
+          });
+        } else if (isSmiling) {
+          this.smiled();
+          this.setState({justSmiled: true});
+        }
+      } else if (!isBlinking || !isSmiling) {
+        this.setState({
+          justBlinked: isBlinking,
+          justSmiled: isSmiling
+        });
+      }
     }
 
-    this.setState({ ...blendShapes, isBlinking });
+    this.setState({ ...blendShapes, isBlinking, isSmiling });
 
   };
 
@@ -119,6 +145,8 @@ class CameraScreen extends React.Component {
     const {
       [AR.BlendShapes.EyeBlinkR]: leftEyebrow,
       [AR.BlendShapes.EyeBlinkL]: rightEyebrow,
+      [AR.BlendShapes.MouthSmileL]: rightSmile,
+      [AR.BlendShapes.MouthSmileR]: leftSmile,
     } = this.state;
 
     const message = `You are blinking! You've blinked ${this.state.numBlinks} times.`;
@@ -133,11 +161,20 @@ class CameraScreen extends React.Component {
           trackingConfiguration={config}
           arEnabled
         />
+        <View>
+          {
+            !this.state.gamePlay ? <Button title="PLAY" onPress={this.toggleGame} /> :
+            <Button title="PAUSE" onPress={this.toggleGame} />
+          }
+        </View>
         <View style={styles.infoContainer}>
           <InfoBox title="Left Eye">{leftEyebrow}</InfoBox>
           <InfoBox title="Right Eye">{rightEyebrow}</InfoBox>
+          <InfoBox title="Left Smile">{leftSmile}</InfoBox>
+          <InfoBox title="Right Smile">{rightSmile}</InfoBox>
         </View>
-        {this.state.isBlinking && <Text style={styles.coolMessage}>{message}</Text>}
+        {(this.state.isBlinking && this.state.gamePlay) && <Text style={styles.coolMessage}>{message}</Text>}
+        {(this.state.isSmiling && this.state.gamePlay) && <Text style={styles.coolMessage}>You're Smiling!</Text>}
       </View>
     );
   }

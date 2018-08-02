@@ -21,6 +21,10 @@ io.on('connection', function (socket) {
     console.log('YOU BLINKED! I SAW!')
   })
 
+  socket.on('smiled', () => {
+    console.log('YOU SMILED! I SAW! :)')
+  })
+
   socket.on('sendMessage', () => {
     console.log('I GOT THE MESSAGE');
   });

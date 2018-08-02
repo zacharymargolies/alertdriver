@@ -13,7 +13,7 @@ export default class SettingsScreen extends React.Component {
     Expo.Audio.setIsEnabledAsync(true)
     async function playSound() {
     try {
-      await soundObject.loadAsync(require('../assets/beep.mp3'));
+      await soundObject.loadAsync(require('../assets/sounds/beep.mp3'));
       await soundObject.playAsync();
     } catch (err) {
       console.log(err);
