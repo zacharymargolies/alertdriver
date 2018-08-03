@@ -14,7 +14,7 @@ import io from 'socket.io-client';
 export default class GameScreen extends React.Component {
   constructor() {
     super();
-
+    console.log('CONSTRUCTOR RAN');
     const connectionConfig = {
       jsonp: false,
       reconnection: true,
@@ -24,22 +24,26 @@ export default class GameScreen extends React.Component {
     };
 
     this.socket = io('http://172.16.21.255:3000', connectionConfig);
-
+    console.log('SOCKET ID: ', this.socket.id)
+    this.socket.on('connect', () => {
+      console.log("iPhone connected")
+    })
+    this.socket.on('opponentLost', () => {
+      console.log('opponentLost received', this.socket.id)
+      this.setState({won: true})
+    })
   }
 
-  blinked = () => {
-    this.socket.emit('blinked');
-  }
-
-  smiled = () => {
-    this.socket.emit('smiled');
+  lost = (isBlinking, isSmiling) => {
+    this.socket.emit('lose', {isBlinking, isSmiling});
   }
 
   state = {
     numBlinks: 0,
     justBlinked: false,
     justSmiled: false,
-    gamePlay: false
+    gamePlay: false,
+    won: false
   };
 
   async componentDidMount() {
@@ -78,7 +82,6 @@ export default class GameScreen extends React.Component {
   }
 
   toggleGame = () => {
-    console.log('GAME STATE CHANGED')
     this.setState({gamePlay: !this.state.gamePlay});
   }
 
@@ -110,7 +113,7 @@ export default class GameScreen extends React.Component {
       if ((isBlinking && !this.state.justBlinked) || (isSmiling  && !this.state.justSmiled)) {
         this.playSound();
         if (isBlinking) {
-          this.blinked();
+          this.lost(true, false);
           this.setState((state) => {
             return {
               numBlinks: state.numBlinks + 1,
@@ -118,7 +121,7 @@ export default class GameScreen extends React.Component {
             };
           });
         } else if (isSmiling) {
-          this.smiled();
+          this.lost(false, true);
           this.setState({justSmiled: true});
         }
       } else if (!isBlinking || !isSmiling) {
@@ -159,6 +162,9 @@ export default class GameScreen extends React.Component {
           trackingConfiguration={config}
           arEnabled
         />
+        <View>
+          {this.state.won ? <Text>YOU WON !!!</Text> : null}
+        </View>
         <View>
           {
             !this.state.gamePlay ? <Button title="PLAY" onPress={this.toggleGame} /> :

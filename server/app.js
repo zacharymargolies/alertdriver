@@ -13,11 +13,13 @@ app.get('/', function (req, res) {
 io.on('connection', function (socket) {
   console.log('SERVERSIDE SOCKET CONNECTED: ', socket.id);
 
-  socket.on('blinked', () => {
-    console.log('YOU BLINKED! I SAW!')
-  })
+  socket.on('lose', ({isBlinking, isSmiling}) => {
+    socket.broadcast.emit('opponentLost', {isBlinking, isSmiling});
+    if (isBlinking) {
+      console.log('YOU BLINKED! I SAW!')
+    } else if (isSmiling) {
+      console.log('YOU SMILED! I SAW!')
+    }
 
-  socket.on('smiled', () => {
-    console.log('YOU SMILED! I SAW! :)')
   })
 });
