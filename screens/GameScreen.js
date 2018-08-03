@@ -14,7 +14,7 @@ import io from 'socket.io-client';
 export default class GameScreen extends React.Component {
   constructor() {
     super();
-    console.log('CONSTRUCTOR RAN');
+
     const connectionConfig = {
       jsonp: false,
       reconnection: true,
@@ -24,13 +24,12 @@ export default class GameScreen extends React.Component {
     };
 
     this.socket = io('http://172.16.21.255:3000', connectionConfig);
-    console.log('SOCKET ID: ', this.socket.id)
     this.socket.on('connect', () => {
-      console.log("iPhone connected")
+      console.log('iPhone connected');
     })
     this.socket.on('opponentLost', () => {
-      console.log('opponentLost received', this.socket.id)
-      this.setState({won: true})
+      console.log('opponentLost received', this.socket.id);
+      this.setState({won: true});
     })
   }
 
@@ -43,10 +42,10 @@ export default class GameScreen extends React.Component {
     justBlinked: false,
     justSmiled: false,
     gamePlay: false,
-    won: false
+    won: null
   };
 
-  async componentDidMount() {
+   componentDidMount() {
     const hasFace = anchors => {
       for (let anchor of anchors) {
         if (anchor.type === AR.AnchorTypes.Face) {
@@ -83,13 +82,30 @@ export default class GameScreen extends React.Component {
 
   toggleGame = () => {
     this.setState({gamePlay: !this.state.gamePlay});
+    this.playSound();
   }
 
-  playSound = async () => {
+  newGame = () => {
+    this.setState({
+      numBlinks: 0,
+      justBlinked: false,
+      justSmiled: false,
+      gamePlay: false,
+      won: null
+    });
+    this.playSound(this.sounds.intro);
+  }
+
+  sounds = {
+    intro: require('../assets/sounds/Intro.wav'),
+    lost: require('../assets/sounds/Lose.wav')
+  }
+
+  playSound = async (sound) => {
     const soundObject = new Expo.Audio.Sound();
     Expo.Audio.setIsEnabledAsync(true);
     try {
-      await soundObject.loadAsync(require('../assets/sounds/beep.mp3'));
+      await soundObject.loadAsync(sound);
       await soundObject.playAsync();
     } catch (err) {
       console.log(err);
@@ -162,23 +178,32 @@ export default class GameScreen extends React.Component {
           trackingConfiguration={config}
           arEnabled
         />
-        <View>
-          {this.state.won ? <Text>YOU WON !!!</Text> : null}
-        </View>
-        <View>
           {
-            !this.state.gamePlay ? <Button title="PLAY" onPress={this.toggleGame} /> :
-            <Button title="PAUSE" onPress={this.toggleGame} />
-          }
+            this.state.won === null ? null : (
+            this.state.won ? <WinBox /> : <LoseBox />
+          )
+            }
+        <View style={{flexDirection: 'row'}}>
+          <View style={{width: 190, backgroundColor: 'powderblue'}}>
+            {
+              !this.state.gamePlay ? <Button title="PLAY" onPress={this.toggleGame} /> :
+              <Button title="PAUSE" onPress={this.toggleGame} />
+            }
+          </View>
+          <View style={{width: 190, backgroundColor: 'blue'}}>
+            {
+              <Button disabled={this.state.gamePlay && this.state.won !== null} title="NEW GAME" onPress={this.newGame} />
+            }
+          </View>
         </View>
-        <View style={styles.infoContainer}>
+        {/* <View style={styles.infoContainer}>
           <InfoBox title="Left Eye">{leftEyebrow}</InfoBox>
           <InfoBox title="Right Eye">{rightEyebrow}</InfoBox>
           <InfoBox title="Left Smile">{leftSmile}</InfoBox>
           <InfoBox title="Right Smile">{rightSmile}</InfoBox>
-        </View>
-        {(this.state.isBlinking && this.state.gamePlay) && <Text style={styles.coolMessage}>{message}</Text>}
-        {(this.state.isSmiling && this.state.gamePlay) && <Text style={styles.coolMessage}>You're Smiling!</Text>}
+        </View> */}
+        {/* {(this.state.isBlinking && this.state.gamePlay) && <Text style={styles.coolMessage}>{message}</Text>}
+        {(this.state.isSmiling && this.state.gamePlay) && <Text style={styles.coolMessage}>You're Smiling!</Text>} */}
       </View>
     );
   }
@@ -188,7 +213,7 @@ export default class GameScreen extends React.Component {
   };
 
   commonSetup = ({ gl, scale, width, height }) => {
-    this.renderer = ExpoTHREE.renderer({ gl });
+    this.renderer = new ExpoTHREE.renderer({ gl });
     this.renderer.setPixelRatio(scale);
     this.renderer.setSize(width, height);
     this.renderer.setClearColor(0xffffff, 1.0);
@@ -221,6 +246,18 @@ const InfoBox = (props) =>  {
       </View>
     );
 };
+
+const WinBox = () => (
+    <View style={styles.game}>
+      <Text style={styles.win}>YOU WIN</Text>
+    </View>
+)
+
+const LoseBox = () => (
+  <View style={styles.game}>
+    <Text style={styles.lose}>YOU LOSE</Text>
+  </View>
+)
 
 
 const styles = StyleSheet.create({
@@ -262,5 +299,33 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: 'white',
     bottom: '10%',
+  },
+  game: {
+    position: 'absolute',
+    left: 24,
+    right: 24,
+    top: '50%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loseContainer: {
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  win: {
+    color: 'green',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  lose: {
+    color: 'red',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 48,
+    marginBottom: 16,
   },
 });
