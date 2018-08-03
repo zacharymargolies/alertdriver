@@ -21,5 +21,9 @@ io.on('connection', function (socket) {
       console.log('YOU SMILED! I SAW!')
     }
 
+  });
+
+  socket.on('newGame', () => {
+    socket.broadcast.emit('opponentNewGame');
   })
 });

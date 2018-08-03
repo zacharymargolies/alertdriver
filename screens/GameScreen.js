@@ -26,15 +26,32 @@ export default class GameScreen extends React.Component {
     this.socket = io('http://172.16.21.255:3000', connectionConfig);
     this.socket.on('connect', () => {
       console.log('iPhone connected');
-    })
+    });
+
     this.socket.on('opponentLost', () => {
       console.log('opponentLost received', this.socket.id);
       this.setState({won: true});
-    })
+      this.playSound(this.sounds.won);
+    });
+
+    this.socket.on('opponentNewGame', () => {
+      console.log('OPPONENT NEW GAME')
+      this.setState({
+        numBlinks: 0,
+        justBlinked: false,
+        justSmiled: false,
+        gamePlay: false,
+        won: null
+      });
+    });
   }
 
   lost = (isBlinking, isSmiling) => {
-    this.socket.emit('lose', {isBlinking, isSmiling});
+    if (this.state.won === null) {
+      this.socket.emit('lose', {isBlinking, isSmiling});
+      this.setState({won: false});
+      this.playSound(this.sounds.lost);
+    }
   }
 
   state = {
@@ -45,7 +62,7 @@ export default class GameScreen extends React.Component {
     won: null
   };
 
-   componentDidMount() {
+  componentDidMount() {
     const hasFace = anchors => {
       for (let anchor of anchors) {
         if (anchor.type === AR.AnchorTypes.Face) {
@@ -94,11 +111,13 @@ export default class GameScreen extends React.Component {
       won: null
     });
     this.playSound(this.sounds.intro);
+    this.socket.emit('newGame');
   }
 
   sounds = {
     intro: require('../assets/sounds/Intro.wav'),
-    lost: require('../assets/sounds/Lose.wav')
+    lost: require('../assets/sounds/Lost.wav'),
+    won: require('../assets/sounds/Won.wav')
   }
 
   playSound = async (sound) => {
@@ -133,12 +152,16 @@ export default class GameScreen extends React.Component {
           this.setState((state) => {
             return {
               numBlinks: state.numBlinks + 1,
-              justBlinked: true
+              justBlinked: true,
+              won: false
             };
           });
         } else if (isSmiling) {
           this.lost(false, true);
-          this.setState({justSmiled: true});
+          this.setState({
+            justSmiled: true,
+            won: false
+          });
         }
       } else if (!isBlinking || !isSmiling) {
         this.setState({
@@ -196,14 +219,6 @@ export default class GameScreen extends React.Component {
             }
           </View>
         </View>
-        {/* <View style={styles.infoContainer}>
-          <InfoBox title="Left Eye">{leftEyebrow}</InfoBox>
-          <InfoBox title="Right Eye">{rightEyebrow}</InfoBox>
-          <InfoBox title="Left Smile">{leftSmile}</InfoBox>
-          <InfoBox title="Right Smile">{rightSmile}</InfoBox>
-        </View> */}
-        {/* {(this.state.isBlinking && this.state.gamePlay) && <Text style={styles.coolMessage}>{message}</Text>}
-        {(this.state.isSmiling && this.state.gamePlay) && <Text style={styles.coolMessage}>You're Smiling!</Text>} */}
       </View>
     );
   }
