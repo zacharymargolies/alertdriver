@@ -68,6 +68,7 @@ export default class GameScreen extends React.Component {
     justSmiled: false,
     gamePlay: false,
     opponentGamePlay: false,
+    meme: true,
     won: null
   };
 
@@ -122,6 +123,12 @@ export default class GameScreen extends React.Component {
     this.playSound(this.sounds.intro);
     this.socket.emit('newGame');
   }
+
+  _onPlaybackStatusUpdate = playbackStatus => {
+      if (playbackStatus.didJustFinish ) {
+        this.setState({meme: false})
+      }
+    }
 
   sounds = {
     intro: require('../assets/sounds/Intro.wav'),
@@ -207,12 +214,16 @@ export default class GameScreen extends React.Component {
           trackingConfiguration={config}
           arEnabled
         />
-        {/* <Video
-	        source={this.videos.Wednesday}
+        {
+          !this.state.meme ? null :
+        <Video
+	        source={this.videos.LebronJames}
           shouldPlay
-	        resizeMode="cover"
-	        style={{ width: 390, height: 400 }} */}
-	/>
+          resizeMode="cover"
+          style={{ width: 390, height: 400, position: 'absolute', marginTop: 100, paddingLeft: 50, opacity: this.state.meme ? 1.0 : 0.0 }}
+          onPlaybackStatusUpdate={this._onPlaybackStatusUpdate}
+	      />
+        }
           {
             this.state.won === null ? null : (
             this.state.won ? <WinBox /> : <LoseBox />
