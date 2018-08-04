@@ -55,7 +55,7 @@ export default class PlayStateView extends React.Component {
             justifyContent: 'space-between',
             padding: 24,
           }}>
-          <IconButton icon={this.iconName} onPress={this.onPress} />
+          {/* <IconButton icon={this.iconName} onPress={this.onPress} /> */}
         </View>
       </View>
     );

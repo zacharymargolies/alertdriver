@@ -23,14 +23,17 @@ export default class GameScreen extends React.Component {
       transports: ['websocket']
     };
 
-    this.socket = io('http://172.16.21.255:3000', connectionConfig);
+    this.socket = io('http://172.16.27.140:3000', connectionConfig);
     this.socket.on('connect', () => {
       console.log('iPhone connected');
     });
 
     this.socket.on('opponentLost', () => {
       console.log('opponentLost received', this.socket.id);
-      this.setState({won: true});
+      this.setState({
+        won: true,
+        gamePlay: false
+      });
       this.playSound(this.sounds.won);
     });
 
@@ -44,12 +47,23 @@ export default class GameScreen extends React.Component {
         won: null
       });
     });
+
+    this.socket.on('opponentGamePlay', (opponentGamePlay) => {
+      console.log("OPPONENT GAME PLAY CALLED");
+      this.setState({
+        opponentGamePlay
+      });
+      console.log('STATE: ', this.state)
+    });
   }
 
   lost = (isBlinking, isSmiling) => {
     if (this.state.won === null) {
       this.socket.emit('lose', {isBlinking, isSmiling});
-      this.setState({won: false});
+      this.setState({
+        won: false,
+        gamePlay: false
+      });
       this.playSound(this.sounds.lost);
     }
   }
@@ -59,6 +73,7 @@ export default class GameScreen extends React.Component {
     justBlinked: false,
     justSmiled: false,
     gamePlay: false,
+    opponentGamePlay: false,
     won: null
   };
 
@@ -99,6 +114,8 @@ export default class GameScreen extends React.Component {
 
   toggleGame = () => {
     this.setState({gamePlay: !this.state.gamePlay});
+    console.log('GAMEPLAY: ', !this.state.gamePlay);
+    this.socket.emit('opponentToggleGame', !this.state.gamePlay);
     this.playSound();
   }
 
@@ -142,7 +159,7 @@ export default class GameScreen extends React.Component {
     } = blendShapes;
 
     const isBlinking = leftEyebrow > 0.25 || rightEyebrow > 0.25;
-    const isSmiling = (rightSmile + leftSmile) > 0.5;
+    const isSmiling = (rightSmile + leftSmile) > 0.8;
 
     if (this.state.gamePlay) {
       if ((isBlinking && !this.state.justBlinked) || (isSmiling  && !this.state.justSmiled)) {
@@ -182,14 +199,14 @@ export default class GameScreen extends React.Component {
   render() {
     const config = AR.TrackingConfigurations.Face;
 
-    const {
-      [AR.BlendShapes.EyeBlinkR]: leftEyebrow,
-      [AR.BlendShapes.EyeBlinkL]: rightEyebrow,
-      [AR.BlendShapes.MouthSmileL]: rightSmile,
-      [AR.BlendShapes.MouthSmileR]: leftSmile,
-    } = this.state;
+    // const {
+    //   [AR.BlendShapes.EyeBlinkR]: leftEyebrow,
+    //   [AR.BlendShapes.EyeBlinkL]: rightEyebrow,
+    //   [AR.BlendShapes.MouthSmileL]: rightSmile,
+    //   [AR.BlendShapes.MouthSmileR]: leftSmile,
+    // } = this.state;
 
-    const message = `You are blinking! You've blinked ${this.state.numBlinks} times.`;
+    // const message = `You are blinking! You've blinked ${this.state.numBlinks} times.`;
 
     return (
       <View style={{ flex: 1 }}>
@@ -206,14 +223,28 @@ export default class GameScreen extends React.Component {
             this.state.won ? <WinBox /> : <LoseBox />
           )
             }
+            <View>
+              {
+                !this.state.opponentGamePlay ? <Text>Waiting on opponent...</Text> : null
+              }
+            </View>
         <View style={{flexDirection: 'row'}}>
           <View style={{width: 190, backgroundColor: 'powderblue'}}>
             {
-              !this.state.gamePlay ? <Button title="PLAY" onPress={this.toggleGame} /> :
-              <Button title="PAUSE" onPress={this.toggleGame} />
+              !this.state.gamePlay ?
+              <Button
+                disabled={this.state.won !== null}
+                title="PLAY"
+                onPress={this.toggleGame}
+              /> :
+              <Button
+                disabled={this.state.won !== null}
+                title="PAUSE"
+                onPress={this.toggleGame}
+              />
             }
           </View>
-          <View style={{width: 190, backgroundColor: 'blue'}}>
+          <View style={{width: 190, backgroundColor: 'powderblue'}}>
             {
               <Button disabled={this.state.gamePlay && this.state.won !== null} title="NEW GAME" onPress={this.newGame} />
             }

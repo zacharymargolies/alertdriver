@@ -25,5 +25,11 @@ io.on('connection', function (socket) {
 
   socket.on('newGame', () => {
     socket.broadcast.emit('opponentNewGame');
+    io.emit('opponentGamePlay', false);
+  });
+
+  socket.on('opponentToggleGame', (opponentGamePlay) => {
+    console.log("OPPONENT GAME PLAY: ", opponentGamePlay);
+    socket.broadcast.emit('opponentGamePlay', opponentGamePlay);
   })
 });
