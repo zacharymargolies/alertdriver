@@ -29,7 +29,6 @@ io.on('connection', function (socket) {
   });
 
   socket.on('opponentToggleGame', (opponentGamePlay) => {
-    console.log("OPPONENT GAME PLAY: ", opponentGamePlay);
     socket.broadcast.emit('opponentGamePlay', opponentGamePlay);
   })
 });

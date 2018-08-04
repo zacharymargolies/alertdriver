@@ -1,5 +1,5 @@
 /* eslint-disable complexity*/
-import Expo, { AR } from 'expo';
+import Expo, { AR, Video } from 'expo';
 import ExpoTHREE, { THREE } from 'expo-three';
 import React from 'react';
 import { Text, View, StyleSheet, Button } from 'react-native';
@@ -29,7 +29,6 @@ export default class GameScreen extends React.Component {
     });
 
     this.socket.on('opponentLost', () => {
-      console.log('opponentLost received', this.socket.id);
       this.setState({
         won: true,
         gamePlay: false
@@ -38,9 +37,7 @@ export default class GameScreen extends React.Component {
     });
 
     this.socket.on('opponentNewGame', () => {
-      console.log('OPPONENT NEW GAME')
       this.setState({
-        numBlinks: 0,
         justBlinked: false,
         justSmiled: false,
         gamePlay: false,
@@ -49,11 +46,9 @@ export default class GameScreen extends React.Component {
     });
 
     this.socket.on('opponentGamePlay', (opponentGamePlay) => {
-      console.log("OPPONENT GAME PLAY CALLED");
       this.setState({
         opponentGamePlay
       });
-      console.log('STATE: ', this.state)
     });
   }
 
@@ -69,7 +64,6 @@ export default class GameScreen extends React.Component {
   }
 
   state = {
-    numBlinks: 0,
     justBlinked: false,
     justSmiled: false,
     gamePlay: false,
@@ -114,14 +108,12 @@ export default class GameScreen extends React.Component {
 
   toggleGame = () => {
     this.setState({gamePlay: !this.state.gamePlay});
-    console.log('GAMEPLAY: ', !this.state.gamePlay);
     this.socket.emit('opponentToggleGame', !this.state.gamePlay);
     this.playSound();
   }
 
   newGame = () => {
     this.setState({
-      numBlinks: 0,
       justBlinked: false,
       justSmiled: false,
       gamePlay: false,
@@ -137,6 +129,12 @@ export default class GameScreen extends React.Component {
     won: require('../assets/sounds/Won.wav')
   }
 
+  videos = {
+    RickRollShort: require('../assets/videos/RickRollShort.mp4'),
+    LebronJames: require('../assets/videos/LebronJames.mp4'),
+    Wednesday: require('../assets/videos/Wednesday.mp4')
+  }
+
   playSound = async (sound) => {
     const soundObject = new Expo.Audio.Sound();
     Expo.Audio.setIsEnabledAsync(true);
@@ -148,7 +146,7 @@ export default class GameScreen extends React.Component {
     }
   }
 
-  handleFace = (anchor, eventType) => {
+  handleFace = (anchor) => {
     const { blendShapes } = anchor;
 
     const {
@@ -188,7 +186,7 @@ export default class GameScreen extends React.Component {
       }
     }
 
-    this.setState({ ...blendShapes, isBlinking, isSmiling });
+    this.setState({ ...blendShapes });
 
   };
 
@@ -198,15 +196,6 @@ export default class GameScreen extends React.Component {
 
   render() {
     const config = AR.TrackingConfigurations.Face;
-
-    // const {
-    //   [AR.BlendShapes.EyeBlinkR]: leftEyebrow,
-    //   [AR.BlendShapes.EyeBlinkL]: rightEyebrow,
-    //   [AR.BlendShapes.MouthSmileL]: rightSmile,
-    //   [AR.BlendShapes.MouthSmileR]: leftSmile,
-    // } = this.state;
-
-    // const message = `You are blinking! You've blinked ${this.state.numBlinks} times.`;
 
     return (
       <View style={{ flex: 1 }}>
@@ -218,6 +207,12 @@ export default class GameScreen extends React.Component {
           trackingConfiguration={config}
           arEnabled
         />
+        {/* <Video
+	        source={this.videos.Wednesday}
+          shouldPlay
+	        resizeMode="cover"
+	        style={{ width: 390, height: 400 }} */}
+	/>
           {
             this.state.won === null ? null : (
             this.state.won ? <WinBox /> : <LoseBox />
@@ -282,70 +277,19 @@ export default class GameScreen extends React.Component {
   };
 }
 
-const InfoBox = (props) =>  {
-    const { title, children } = props;
-    let value = (children || 0).toFixed(2);
-    return (
-      <View style={styles.infoBoxContainer}>
-        <Text style={styles.infoTitle}>{title}</Text>
-        <Text style={styles.infoSubtitle}>{value}</Text>
-      </View>
-    );
-};
-
 const WinBox = () => (
     <View style={styles.game}>
       <Text style={styles.win}>YOU WIN</Text>
     </View>
-)
+);
 
 const LoseBox = () => (
   <View style={styles.game}>
     <Text style={styles.lose}>YOU LOSE</Text>
   </View>
-)
-
+);
 
 const styles = StyleSheet.create({
-  infoContainer: {
-    position: 'absolute',
-    left: 24,
-    right: 24,
-    top: '10%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  infoBoxContainer: {
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  infoTitle: {
-    color: 'red',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  infoSubtitle: {
-    color: 'red',
-    textAlign: 'center',
-    fontSize: 16,
-    opacity: 0.8,
-  },
-  coolMessage: {
-    color: 'red',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 24,
-    position: 'absolute',
-    left: 24,
-    right: 24,
-    padding: 24,
-    backgroundColor: 'white',
-    bottom: '10%',
-  },
   game: {
     position: 'absolute',
     left: 24,
