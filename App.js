@@ -4,6 +4,7 @@ import { AppLoading, Asset, Font, Icon } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 window.navigator.userAgent = 'react-native';
 import io from 'socket.io-client';
+console.ignoredYellowBox = ['THREE'];
 
 export default class App extends React.Component {
   constructor() {
@@ -19,20 +20,10 @@ export default class App extends React.Component {
 
     this.socket = io('http://172.16.21.255:3000', connectionConfig);
 
-    this.socket.on('update', () => {
-      this.setState({message: 'Socket message received'});
-    });
-
-  }
-
-  sendMessage = () => {
-    console.log('SEND MESSAGE CLICKED');
-    this.socket.emit('sendMessage');
   }
 
   state = {
-    isLoadingComplete: false,
-    message: 'No socket message sent...'
+    isLoadingComplete: false
   };
 
   render() {
@@ -42,7 +33,8 @@ export default class App extends React.Component {
           startAsync={this._loadResourcesAsync}
           onError={this._handleLoadingError}
           onFinish={this._handleFinishLoading}
-        />
+          >
+        </AppLoading>
       );
     } else {
       return (
@@ -50,20 +42,6 @@ export default class App extends React.Component {
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
           <AppNavigator />
         </View>
-      // <View>
-      //   <Text>
-      //     SOCKET TEST
-      //   </Text>
-      //   <Text>
-      //     SOCKET MESSAGE:
-      //   </Text>
-      //   <Text>
-      //     {this.state.message}
-      //   </Text>
-      //   <Button
-      //     onPress={this.sendMessage}
-      //     title="Send Message to Computer" />>
-      // </View>
       );
     }
   }
@@ -71,8 +49,8 @@ export default class App extends React.Component {
   _loadResourcesAsync = async () => {
     return Promise.all([
       Asset.loadAsync([
-        require('./assets/images/robot-dev.png'),
-        require('./assets/images/robot-prod.png'),
+        // require('./assets/images/robot-dev.png'),
+        // require('./assets/images/robot-prod.png'),
       ]),
       Font.loadAsync({
         // This is the font that we are using for our tab bar
