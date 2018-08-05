@@ -25,7 +25,7 @@ export default class GameScreen extends React.Component {
 
     this.socket = io('http://172.16.27.140:3000', connectionConfig);
     this.socket.on('connect', () => {
-      console.log('iPhone connected');
+      console.log('iPhone connected ', this.socket.id);
     });
 
     this.socket.on('opponentLost', () => {
@@ -50,7 +50,16 @@ export default class GameScreen extends React.Component {
         opponentGamePlay
       });
     });
+
+    this.socket.on('opponentPowerUpPlay', (num) => {
+      this.setState({
+        videoVisible: true,
+        video: num.toString()
+      });
+      console.log(`NEW STATE IS: `, this.state);
+    })
   }
+
 
   lost = (isBlinking, isSmiling) => {
     if (this.state.won === null) {
@@ -68,7 +77,10 @@ export default class GameScreen extends React.Component {
     justSmiled: false,
     gamePlay: false,
     opponentGamePlay: false,
-    meme: true,
+    powerup1: true,
+    powerup2: true,
+    videoVisible: false,
+    video: null,
     won: null
   };
 
@@ -118,6 +130,10 @@ export default class GameScreen extends React.Component {
       justBlinked: false,
       justSmiled: false,
       gamePlay: false,
+      powerup1: true,
+      powerup2: true,
+      videoVisible: false,
+      video: null,
       won: null
     });
     this.playSound(this.sounds.intro);
@@ -126,9 +142,14 @@ export default class GameScreen extends React.Component {
 
   _onPlaybackStatusUpdate = playbackStatus => {
       if (playbackStatus.didJustFinish ) {
-        this.setState({meme: false})
+        this.setState({videoVisible: false});
       }
     }
+
+  powerUp = (num) => {
+    this.setState({[`powerup${num}`]: false})
+    this.socket.emit('powerUpPlay', num);
+  }
 
   sounds = {
     intro: require('../assets/sounds/Intro.wav'),
@@ -138,8 +159,8 @@ export default class GameScreen extends React.Component {
 
   videos = {
     RickRollShort: require('../assets/videos/RickRollShort.mp4'),
-    LebronJames: require('../assets/videos/LebronJames.mp4'),
-    Wednesday: require('../assets/videos/Wednesday.mp4')
+    1: require('../assets/videos/LebronJames.mp4'),
+    2: require('../assets/videos/Wednesday.mp4')
   }
 
   playSound = async (sound) => {
@@ -215,12 +236,12 @@ export default class GameScreen extends React.Component {
           arEnabled
         />
         {
-          !this.state.meme ? null :
+          !this.state.videoVisible ? null :
         <Video
-	        source={this.videos.LebronJames}
+          source={this.videos[this.state.video]}
           shouldPlay
           resizeMode="cover"
-          style={{ width: 390, height: 400, position: 'absolute', marginTop: 100, paddingLeft: 50, opacity: this.state.meme ? 1.0 : 0.0 }}
+          style={{ width: 390, height: 400, position: 'absolute', marginTop: 100, paddingLeft: 50, opacity: this.state.videoVisible ? 1.0 : 0.0 }}
           onPlaybackStatusUpdate={this._onPlaybackStatusUpdate}
 	      />
         }
@@ -236,6 +257,15 @@ export default class GameScreen extends React.Component {
             </View>
         <View style={{flexDirection: 'row'}}>
           <View style={{width: 190, backgroundColor: 'powderblue'}}>
+            {
+              !this.state.gamePlay ? null : (
+                <React.Fragment>
+                  <Button disabled={!this.state.powerup1} onPress={() => {this.powerUp(1)}} title="POWER UP 1" />
+                  <Button disabled={!this.state.powerup2} onPress={() => {this.powerUp(2)}} title="POWER UP 2" />
+                </React.Fragment>
+              )
+            }
+
             {
               !this.state.gamePlay ?
               <Button
