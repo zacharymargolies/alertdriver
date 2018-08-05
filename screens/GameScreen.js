@@ -24,7 +24,7 @@ class GameScreen extends React.Component {
       transports: ['websocket']
     };
 
-    this.socket = io('http://172.16.27.140:3000', connectionConfig);
+    this.socket = io('http://192.168.1.8:3000', connectionConfig);
     this.socket.on('connect', () => {
       console.log('iPhone connected ', this.socket.id);
     });
@@ -186,7 +186,7 @@ class GameScreen extends React.Component {
     } = blendShapes;
 
     const isBlinking = leftEyebrow > 0.25 || rightEyebrow > 0.25;
-    const isSmiling = (rightSmile + leftSmile) > 0.8;
+    const isSmiling = (rightSmile + leftSmile) > 0.8 * this.props.gameDifficulty;
 
     if (this.state.gamePlay) {
       if ((isBlinking && !this.state.justBlinked) || (isSmiling  && !this.state.justSmiled)) {
