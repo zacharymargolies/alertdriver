@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
+import {connect} from 'react-redux'
 import {Button} from 'react-native'
+import { updateGameDifficulty } from './store/game';
 
-export default class GameOptions extends Component {
+class GameOptions extends Component {
   constructor() {
     super();
 
@@ -17,12 +19,21 @@ export default class GameOptions extends Component {
   render() {
     return (
       <React.Fragment>
-        <Button title="EASY" onPress={() => {this.setDifficulty(1)}} />
+        <Button title="EASY" onPress={() => {this.props.updateGameDifficulty(1)}} />
 
-        <Button title="MEDIUM" onPress={() => {this.setDifficulty(2)}} />
+        <Button title="MEDIUM" onPress={() => {this.props.updateGameDifficulty(2)}} />
 
-        <Button title="HARD" onPress={() => {this.setDifficulty(3)}} />
+        <Button title="HARD" onPress={() => {this.props.updateGameDifficulty(3)}} />
       </React.Fragment>
     )
   }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+  updateGameDifficulty: (difficulty) => {
+    dispatch(updateGameDifficulty(difficulty));
+  }
+})
+
+
+export default connect(null, mapDispatchToProps)(GameOptions);

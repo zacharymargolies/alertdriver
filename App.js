@@ -1,9 +1,11 @@
 import React from 'react';
-import { Platform, StatusBar, StyleSheet, View, Text, Button } from 'react-native';
+import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { AppLoading, Asset, Font, Icon } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 window.navigator.userAgent = 'react-native';
 import io from 'socket.io-client';
+import {Provider} from 'react-redux'
+import store from './screens/store/game'
 console.ignoredYellowBox = ['THREE'];
 
 export default class App extends React.Component {
@@ -33,14 +35,15 @@ export default class App extends React.Component {
           startAsync={this._loadResourcesAsync}
           onError={this._handleLoadingError}
           onFinish={this._handleFinishLoading}
-          >
-        </AppLoading>
+        />
       );
     } else {
       return (
         <View style={styles.container}>
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-          <AppNavigator />
+          <Provider store={store}>
+            <AppNavigator />
+          </Provider>
         </View>
       );
     }
@@ -49,8 +52,7 @@ export default class App extends React.Component {
   _loadResourcesAsync = async () => {
     return Promise.all([
       Asset.loadAsync([
-        // require('./assets/images/robot-dev.png'),
-        // require('./assets/images/robot-prod.png'),
+
       ]),
       Font.loadAsync({
         // This is the font that we are using for our tab bar

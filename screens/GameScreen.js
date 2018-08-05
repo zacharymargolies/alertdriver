@@ -2,6 +2,7 @@
 import Expo, { AR, Video } from 'expo';
 import ExpoTHREE, { THREE } from 'expo-three';
 import React from 'react';
+import { connect } from 'react-redux'
 import { Text, View, StyleSheet, Button } from 'react-native';
 
 import GraphicsView from '../components/GraphicsView';
@@ -11,7 +12,7 @@ window.navigator.userAgent = 'react-native';
 import io from 'socket.io-client';
 
 
-export default class GameScreen extends React.Component {
+class GameScreen extends React.Component {
   constructor() {
     super();
 
@@ -360,3 +361,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
+
+
+const mapStateToProps = (state) => ({
+  gameDifficulty: state.gameDifficulty
+});
+
+export default connect(mapStateToProps, null)(GameScreen);
