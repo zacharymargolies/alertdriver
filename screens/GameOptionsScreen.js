@@ -2,10 +2,11 @@ import React from 'react';
 import {connect} from 'react-redux'
 import {Button} from 'react-native-elements'
 import { updateGameDifficulty } from './store/game';
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, Text } from 'react-native'
 
 const GameOptions = (props) => (
       <View style={styles.container}>
+        <Text style={{fontSize: 20, textAlign: 'center'}}>Difficulty level: </Text>
         <Button
         borderRadius={50}
         raised
