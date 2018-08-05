@@ -12,7 +12,7 @@ export const updateGameDifficulty = (difficulty) => ({
 
 // INITIAL STATE
 const initialState = {
-  gameDifficulty: 1
+  gameDifficulty: 3
 };
 
 const reducer = function(state = initialState, action) {

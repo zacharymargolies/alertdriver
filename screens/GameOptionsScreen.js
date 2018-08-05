@@ -1,39 +1,47 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {connect} from 'react-redux'
-import {Button} from 'react-native'
+import {Button} from 'react-native-elements'
 import { updateGameDifficulty } from './store/game';
+import { View, StyleSheet } from 'react-native'
 
-class GameOptions extends Component {
-  constructor() {
-    super();
+const GameOptions = (props) => (
+      <View style={styles.container}>
+        <Button
+        borderRadius={50}
+        raised
+        backgroundColor="#2ecc71"
+        title="EASY"
+        onPress={() => {props.updateGameDifficulty(3)}} />
 
-    initialState = {
-      difficulty: 1
-    }
-  }
+        <Button
+        borderRadius={50}
+        raised
+        backgroundColor="#e67e22"
+        title="MEDIUM"
+        onPress={() => {props.updateGameDifficulty(2)}} />
 
-  setDifficulty = (level) => {
-    this.setState({difficulty: level})
-  }
-
-  render() {
-    return (
-      <React.Fragment>
-        <Button title="EASY" onPress={() => {this.props.updateGameDifficulty(1)}} />
-
-        <Button title="MEDIUM" onPress={() => {this.props.updateGameDifficulty(2)}} />
-
-        <Button title="HARD" onPress={() => {this.props.updateGameDifficulty(3)}} />
-      </React.Fragment>
-    )
-  }
-}
+        <Button
+        borderRadius={50}
+        raised
+        backgroundColor="#c0392b"
+        title="HARD" onPress={() => {props.updateGameDifficulty(1)}} />
+      </View>
+);
 
 const mapDispatchToProps = (dispatch) => ({
   updateGameDifficulty: (difficulty) => {
     dispatch(updateGameDifficulty(difficulty));
   }
-})
+});
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 50,
+    backgroundColor: '#f1d953',
+    flexDirection: 'column',
+    justifyContent: 'center'
+  }
+})
 
 export default connect(null, mapDispatchToProps)(GameOptions);

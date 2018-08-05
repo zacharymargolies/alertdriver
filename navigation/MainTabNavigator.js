@@ -7,9 +7,10 @@ import TabBarIcon from '../components/TabBarIcon';
 import GameScreen from '../screens/GameScreen';
 import GameOptionsScreen from '../screens/GameOptionsScreen';
 
-const GameOptionsStack = createStackNavigator({
-  GameOptions: GameOptionsScreen,
-});
+const GameOptionsStack = createStackNavigator(
+  {GameOptions: GameOptionsScreen},
+  {headerMode: 'none'}
+);
 
 GameOptionsStack.navigationOptions = {
   tabBarLabel: 'Game Options',
@@ -21,9 +22,10 @@ GameOptionsStack.navigationOptions = {
   ),
 };
 
-const GameStack = createStackNavigator({
-  Game: GameScreen,
-});
+const GameStack = createStackNavigator(
+  {Game: GameScreen},
+  {headerMode: 'none'}
+);
 
 GameStack.navigationOptions = {
   tabBarLabel: 'Game',
