@@ -24,7 +24,7 @@ class GameScreen extends React.Component {
       transports: ['websocket']
     };
 
-    this.socket = io('http://192.168.1.8:3000', connectionConfig);
+    this.socket = io('http://172.16.21.255:3000', connectionConfig);
     this.socket.on('connect', () => {
       console.log('iPhone connected ', this.socket.id);
     });
